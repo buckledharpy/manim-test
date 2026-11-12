@@ -85,7 +85,8 @@ class PropagateSignal(Animation):
             self.wire.end_target.state = self.signal_state
 
     def interpolate_mobject(self, alpha: float) -> None:
-        point = self.wire.point_from_proportion(alpha)
+        clamped_alpha = min(1.0, max(0.0, float(alpha)))
+        point = self.wire.point_from_proportion(clamped_alpha)
         self.packet.move_to(point)
 
 

@@ -76,6 +76,17 @@ class OrthogonalWire(VMobject):
             net.add_wire(self)
             self.current_state = net.state
             self.update_state_color(self.current_state)
+        elif (
+            isinstance(self.start_target, LogicPin)
+            and self.start_target.net is not None
+        ):
+            self.start_target.net.add_wire(self)
+            self.current_state = self.start_target.net.state
+            self.update_state_color(self.current_state)
+        elif isinstance(self.end_target, LogicPin) and self.end_target.net is not None:
+            self.end_target.net.add_wire(self)
+            self.current_state = self.end_target.net.state
+            self.update_state_color(self.current_state)
 
     def _resolve_point(self, target: LogicPin | Point3D) -> np.ndarray:
         if isinstance(target, LogicPin):

@@ -47,8 +47,8 @@ class Circuit(VGroup):
 
     def connect(
         self,
-        pin1: LogicPin,
-        pin2: LogicPin,
+        pin1: LogicPin | Any,
+        pin2: LogicPin | Any,
         routing: str = "auto",
         **kwargs: Any,
     ) -> OrthogonalWire:
@@ -60,9 +60,19 @@ class Circuit(VGroup):
         self.wires.append(wire)
         self.add(wire)
 
-        if wire.start_target.net and wire.start_target.net not in self.nets:
-            self.nets.append(wire.start_target.net)
-            self.simulator.add_net(wire.start_target.net)
+        # Register net with circuit simulator if either pin belongs to one
+        target_net: Net | None = None
+        if (
+            isinstance(wire.start_target, LogicPin)
+            and wire.start_target.net is not None
+        ):
+            target_net = wire.start_target.net
+        elif isinstance(wire.end_target, LogicPin) and wire.end_target.net is not None:
+            target_net = wire.end_target.net
+
+        if target_net is not None and target_net not in self.nets:
+            self.nets.append(target_net)
+            self.simulator.add_net(target_net)
 
         return wire
 
@@ -94,8 +104,13 @@ class Circuit(VGroup):
         self.simulator.evaluate_combinational()
         # Refresh all wire visual states
         for w in self.wires:
+            net = None
             if isinstance(w.start_target, LogicPin) and w.start_target.net:
-                w.update_state_color(w.start_target.net.state)
+                net = w.start_target.net
+            elif isinstance(w.end_target, LogicPin) and w.end_target.net:
+                net = w.end_target.net
+            if net is not None:
+                w.update_state_color(net.state)
         return {
             f"{getattr(c, 'label_text', c.__class__.__name__)}.{p.name}": p.state
             for c in self.components
