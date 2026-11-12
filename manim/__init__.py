@@ -118,4 +118,5 @@ else:
     if ipy is not None:
         ipy.register_magics(ManimMagic)
 
+from .circuit import *
 from .plugins import *
